@@ -14,9 +14,31 @@
 <body>
   <div id="app">
     <header class="site-header">
-      <a href="./" class="site-title">QuizURL</a>
+      <a href="#" class="site-title">QuizURL</a>
       <p class="site-subtitle">Static quizzes, one shareable link.</p>
     </header>
+
+    <!-- Main View -->
+    <div id="main-view" class="view hidden">
+      <h1>Static Quizzes, Instant Sharing</h1>
+      <p class="main-lead">
+        QuizURL stores quiz data directly in the URL, so you can create, share, and play without hosting quiz files on a server. No ads, no tracking, just quizzes.
+      </p>
+
+      <div class="main-actions">
+        <a href="#create" class="btn btn-primary">Create a Quiz</a>
+      </div>
+
+      <section class="example-quizzes">
+        <h2>Example Quizzes</h2>
+        <ul class="example-quiz-list">
+          <li><a href="#" class="example-quiz-link">General Knowledge Sample</a></li>
+          <li><a href="#" class="example-quiz-link">Science Warm-Up</a></li>
+          <li><a href="#" class="example-quiz-link">Geography Sprint</a></li>
+          <li><a href="#" class="example-quiz-link">Math Speed Round</a></li>
+        </ul>
+      </section>
+    </div>
 
     <!-- Quiz Creator View -->
     <div id="creator-view" class="view hidden">

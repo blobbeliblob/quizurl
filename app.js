@@ -46,17 +46,30 @@
   // --- Routing ---
   function route() {
     const hash = window.location.hash.slice(1);
-    if (hash) {
-      showQuizView(hash);
-    } else {
-      showCreatorView();
+    if (!hash) {
+      showMainView();
+      return;
     }
+
+    if (hash === "create") {
+      showCreatorView();
+      return;
+    }
+
+    showQuizView(hash);
+  }
+
+  function showMainView() {
+    document.getElementById("main-view").classList.remove("hidden");
+    document.getElementById("creator-view").classList.add("hidden");
+    document.getElementById("quiz-view").classList.add("hidden");
   }
 
   // =============================================
   //  QUIZ CREATOR
   // =============================================
   function showCreatorView() {
+    document.getElementById("main-view").classList.add("hidden");
     document.getElementById("creator-view").classList.remove("hidden");
     document.getElementById("quiz-view").classList.add("hidden");
     initCreator();
@@ -486,6 +499,7 @@
   let answers = [];
 
   function showQuizView(hash) {
+    document.getElementById("main-view").classList.add("hidden");
     document.getElementById("creator-view").classList.add("hidden");
     document.getElementById("quiz-view").classList.remove("hidden");
 
@@ -494,14 +508,14 @@
     } catch {
       document.getElementById("quiz-start").innerHTML =
         "<h1>Invalid Quiz</h1><p>The quiz link appears to be broken or corrupted.</p>" +
-        '<a href="' + window.location.pathname + '" class="btn btn-primary">Create a Quiz</a>';
+        '<a href="#create" class="btn btn-primary">Create a Quiz</a>';
       return;
     }
 
     document.getElementById("quiz-info").textContent =
       quizData.questions.length + " question" + (quizData.questions.length !== 1 ? "s" : "");
     document.getElementById("start-quiz-btn").onclick = startQuiz;
-    document.getElementById("create-new-link").href = window.location.pathname;
+    document.getElementById("create-new-link").href = "#create";
   }
 
   function startQuiz() {
