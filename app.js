@@ -111,7 +111,7 @@
         </label>
       </div>
       <div class="form-group options-section hidden">
-        <label class="options-label">Options (tick correct answer(s))</label>
+        <label class="options-label">Options (select correct answers)</label>
         <div class="options-list"></div>
         <button class="add-option-btn">+ Add Option</button>
       </div>
@@ -173,7 +173,7 @@
           input.checked = idx === 0;
         });
       } else {
-        optionsLabel.textContent = "Options (tick correct answer(s))";
+        optionsLabel.textContent = "Options (select correct answers)";
       }
     }
   }
