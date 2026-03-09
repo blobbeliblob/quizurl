@@ -322,6 +322,7 @@
 
   function buildQuizData() {
     const showAnswer = document.getElementById("show-answer-toggle").checked;
+    const showFinalResults = document.getElementById("show-final-results-toggle").checked;
     const cards = document.querySelectorAll(".question-card");
     const questions = [];
 
@@ -374,7 +375,7 @@
       questions.push(q);
     }
 
-    return { show_answer: showAnswer, questions };
+    return { show_answer: showAnswer, show_final_results: showFinalResults, questions };
   }
 
   function showLinkMessage(message, isError) {
@@ -470,6 +471,10 @@
       btn.textContent = "Copied!";
       setTimeout(() => (btn.textContent = "Copy"), 2000);
     });
+  }
+
+  function shouldShowFinalResults() {
+    return quizData.show_final_results !== false;
   }
 
   // =============================================
@@ -699,7 +704,7 @@
       if (quizData.show_answer) {
         const nextBtn = document.getElementById("next-question-btn");
         nextBtn.classList.remove("hidden");
-        nextBtn.textContent = "See Results";
+        nextBtn.textContent = shouldShowFinalResults() ? "See Results" : "Finish";
         nextBtn.onclick = showResults;
       } else {
         showResults();
@@ -710,21 +715,35 @@
   function showResults() {
     document.getElementById("quiz-question").classList.add("hidden");
     document.getElementById("quiz-results").classList.remove("hidden");
-    document.getElementById("score-text").textContent =
-      "You scored " + score + " out of " + quizData.questions.length;
-
+    const scoreText = document.getElementById("score-text");
     const breakdown = document.getElementById("results-breakdown");
-    breakdown.innerHTML = "";
-    answers.forEach((a, i) => {
-      const div = document.createElement("div");
-      div.className = "result-item " + (a.correct ? "correct" : "incorrect");
-      div.innerHTML =
-        '<div class="result-question">' + (i + 1) + ". " + escapeHtml(a.question) + "</div>" +
-        '<div class="result-answer">Your answer: ' + escapeHtml(a.userAnswer) +
-        (a.correct ? " ✓" : " ✗ (Correct: " + escapeHtml(a.expected.join(", ")) + ")") +
-        "</div>";
-      breakdown.appendChild(div);
-    });
+    const createNewLink = document.getElementById("create-new-link");
+
+    if (shouldShowFinalResults()) {
+      scoreText.classList.remove("hidden");
+      breakdown.classList.remove("hidden");
+      createNewLink.classList.remove("hidden");
+
+      scoreText.textContent =
+        "You scored " + score + " out of " + quizData.questions.length;
+
+      breakdown.innerHTML = "";
+      answers.forEach((a, i) => {
+        const div = document.createElement("div");
+        div.className = "result-item " + (a.correct ? "correct" : "incorrect");
+        div.innerHTML =
+          '<div class="result-question">' + (i + 1) + ". " + escapeHtml(a.question) + "</div>" +
+          '<div class="result-answer">Your answer: ' + escapeHtml(a.userAnswer) +
+          (a.correct ? " ✓" : " ✗ (Correct: " + escapeHtml(a.expected.join(", ")) + ")") +
+          "</div>";
+        breakdown.appendChild(div);
+      });
+    } else {
+      scoreText.classList.add("hidden");
+      breakdown.classList.add("hidden");
+      createNewLink.classList.add("hidden");
+      breakdown.innerHTML = "";
+    }
 
     document.getElementById("restart-btn").onclick = startQuiz;
   }
