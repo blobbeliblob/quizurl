@@ -91,6 +91,10 @@
         <label>Image URL (optional)</label>
         <input type="url" class="q-image" placeholder="https://...">
       </div>
+      <div class="form-group image-attribution-section hidden">
+        <label>Image Attribution (optional)</label>
+        <input type="text" class="q-image-attribution" placeholder="Photographer, website, or source URL">
+      </div>
       <div class="form-group">
         <label>Type</label>
         <select class="q-type">
@@ -143,6 +147,10 @@
     const typeSelect = card.querySelector(".q-type");
     typeSelect.onchange = () => toggleType(card, typeSelect.value);
 
+    // Image attribution visibility toggle
+    const imageInput = card.querySelector(".q-image");
+    imageInput.oninput = () => syncImageAttributionVisibility(card);
+
     // Add accepted answer
     card.querySelector(".add-answer-btn").onclick = (event) => {
       event.preventDefault();
@@ -163,6 +171,17 @@
     addOption(card);
 
     toggleType(card, "text");
+    syncImageAttributionVisibility(card);
+  }
+
+  function syncImageAttributionVisibility(card) {
+    const imageValue = card.querySelector(".q-image").value.trim();
+    const attributionSection = card.querySelector(".image-attribution-section");
+    if (imageValue) {
+      attributionSection.classList.remove("hidden");
+    } else {
+      attributionSection.classList.add("hidden");
+    }
   }
 
   function toggleType(card, type) {
@@ -313,7 +332,14 @@
       const image = card.querySelector(".q-image").value.trim();
       const type = card.querySelector(".q-type").value;
       const q = { question: text, type, answer: [] };
-      if (image) q.image = image;
+      if (image) {
+        q.image = image;
+
+        const imageAttribution = card.querySelector(".q-image-attribution").value.trim();
+        if (imageAttribution) {
+          q.image_attribution = imageAttribution;
+        }
+      }
 
       if (type === "multiple_response" || type === "multiple_choice") {
         const optionRows = card.querySelectorAll(".options-list .option-row");
@@ -491,12 +517,23 @@
 
     // Image
     const img = document.getElementById("question-image");
+    const attribution = document.getElementById("question-image-attribution");
     if (q.image) {
       img.src = q.image;
       img.classList.remove("hidden");
+
+      if (q.image_attribution) {
+        attribution.textContent = "Source: " + q.image_attribution;
+        attribution.classList.remove("hidden");
+      } else {
+        attribution.textContent = "";
+        attribution.classList.add("hidden");
+      }
     } else {
       img.classList.add("hidden");
       img.src = "";
+      attribution.textContent = "";
+      attribution.classList.add("hidden");
     }
 
     // Answer area
