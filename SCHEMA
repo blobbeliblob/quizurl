@@ -1,0 +1,44 @@
+{
+  "show_answer": true,
+  "show_final_results": true,
+  "questions": [
+    {
+      "question": "What city is known as the City of Light?",
+      "type": "text",
+      "answer": ["Paris", "The City of Light"],
+      "case_sensitive": false,
+      "image": "https://example.com/paris.jpg",
+      "image_attribution": "Example Media Archive"
+    },
+    {
+      "question": "What is pi rounded to two decimal places?",
+      "type": "numerical",
+      "answer": ["3.14", "3.140"]
+    },
+    {
+      "question": "Which planet is the largest in our solar system?",
+      "type": "multiple_choice",
+      "answer": ["Jupiter"],
+      "options": ["Earth", "Mars", "Jupiter", "Saturn"],
+      "randomize_options": true,
+      "image": "https://example.com/jupiter.jpg",
+      "image_attribution": "NASA"
+    },
+    {
+      "question": "Which of these are prime numbers?",
+      "type": "multiple_response",
+      "answer": ["2", "3", "5", "7"],
+      "options": ["1", "2", "3", "4", "5", "6", "7", "8"],
+      "randomize_options": false,
+      "require_all_correct": true
+    },
+    {
+      "question": "Select one valid HTTP method.",
+      "type": "multiple_response",
+      "answer": ["GET", "POST"],
+      "options": ["GET", "POST", "FETCH", "OPEN"],
+      "randomize_options": true,
+      "require_all_correct": false
+    }
+  ]
+}
