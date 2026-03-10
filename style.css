@@ -1,9 +1,11 @@
 :root {
-  --color-bg: #edf2ff;
+  /* --color-bg: #edf2ff; */
   --color-surface: #f9fbff;
+  --color-bg: #fdfbf0;
+  /* --color-surface: #fff7f8; */
   --color-text: #151b33;
   --color-muted: #566083;
-  --color-border: #c7d2f0;
+  --color-border: #f1cfd7;
   --color-brand: #ec4d25;
   --color-brand-rgb: 236, 77, 37;
   --color-accent: #2bcfce;
@@ -84,6 +86,11 @@ body {
 
 .main-actions {
   margin-bottom: 1.4rem;
+}
+
+.main-actions .btn {
+  display: inline-block;
+  box-shadow: var(--shadow-level);
 }
 
 .example-quizzes {
