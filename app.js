@@ -768,7 +768,12 @@
     return div.innerHTML;
   }
 
+  function setCopyrightYear() {
+    document.getElementById("copyright-year").textContent = String(new Date().getFullYear());
+  }
+
   // --- Init ---
   window.addEventListener("hashchange", route);
+  setCopyrightYear();
   route();
 })();

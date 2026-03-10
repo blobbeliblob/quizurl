@@ -40,6 +40,9 @@ body {
   border: 1px solid var(--color-border);
   border-radius: calc(var(--radius-lg) + 4px);
   box-shadow: var(--shadow-level);
+  min-height: calc(100vh - 4rem);
+  display: flex;
+  flex-direction: column;
   padding: clamp(1rem, 2.6vw, 2rem);
 }
 
@@ -634,12 +637,49 @@ select:hover {
   margin-right: 0.5rem;
 }
 
+.site-footer {
+  margin-top: auto;
+  padding-top: 0.85rem;
+  border-top: 1px dashed var(--color-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 0.7rem;
+  font-size: 0.85rem;
+}
+
+.footer-copy {
+  color: var(--color-muted);
+}
+
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  color: var(--color-brand);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.footer-github-icon {
+  width: 1rem;
+  height: 1rem;
+  display: block;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 720px) {
   body {
     padding: 1rem 0.7rem;
   }
 
   #app {
+    min-height: calc(100vh - 2rem);
     padding: 1rem;
   }
 
@@ -657,5 +697,9 @@ select:hover {
   #create-new-link {
     width: 100%;
     margin: 0.3rem 0 0;
+  }
+
+  .site-footer {
+    align-items: center;
   }
 }
