@@ -1,44 +1,66 @@
-{
-  "show_answer": true,
-  "show_final_results": true,
-  "questions": [
+schema = {
+  // sa: show correct answer after each question
+  "sa": true,
+
+  // sr: show final score and answer breakdown at quiz end
+  "sr": true,
+
+  // qs: questions array
+  "qs": [
     {
-      "question": "What city is known as the City of Light?",
-      "type": "text",
-      "answer": ["Paris", "The City of Light"],
-      "case_sensitive": false,
-      "image": "https://example.com/paris.jpg",
-      "image_attribution": "Example Media Archive"
+      // q: question text
+      "q": "What city is known as the City of Light?",
+
+      // t: question type (text | numerical | multiple_choice | multiple_response)
+      "t": "text",
+
+      // a: accepted answer(s)
+      "a": ["Paris", "The City of Light"],
+
+      // cs: case sensitive (text questions only)
+      "cs": false,
+
+      // i: image URL (optional)
+      "i": "https://example.com/paris.jpg",
+
+      // ia: image attribution (optional)
+      "ia": "Example Media Archive"
     },
     {
-      "question": "What is pi rounded to two decimal places?",
-      "type": "numerical",
-      "answer": ["3.14", "3.140"]
+      "q": "What is pi rounded to two decimal places?",
+      "t": "numerical",
+      "a": ["3.14", "3.140"]
     },
     {
-      "question": "Which planet is the largest in our solar system?",
-      "type": "multiple_choice",
-      "answer": ["Jupiter"],
-      "options": ["Earth", "Mars", "Jupiter", "Saturn"],
-      "randomize_options": true,
-      "image": "https://example.com/jupiter.jpg",
-      "image_attribution": "NASA"
+      "q": "Which planet is the largest in our solar system?",
+      "t": "multiple_choice",
+      "a": ["Jupiter"],
+
+      // o: options list (option-based questions only)
+      "o": ["Earth", "Mars", "Jupiter", "Saturn"],
+
+      // ro: randomize option order
+      "ro": true,
+      "i": "https://example.com/jupiter.jpg",
+      "ia": "NASA"
     },
     {
-      "question": "Which of these are prime numbers?",
-      "type": "multiple_response",
-      "answer": ["2", "3", "5", "7"],
-      "options": ["1", "2", "3", "4", "5", "6", "7", "8"],
-      "randomize_options": false,
-      "require_all_correct": true
+      "q": "Which of these are prime numbers?",
+      "t": "multiple_response",
+      "a": ["2", "3", "5", "7"],
+      "o": ["1", "2", "3", "4", "5", "6", "7", "8"],
+      "ro": false,
+
+      // rac: require all correct answers (multiple_response only)
+      "rac": true
     },
     {
-      "question": "Select one valid HTTP method.",
-      "type": "multiple_response",
-      "answer": ["GET", "POST"],
-      "options": ["GET", "POST", "FETCH", "OPEN"],
-      "randomize_options": true,
-      "require_all_correct": false
+      "q": "Select one valid HTTP method.",
+      "t": "multiple_response",
+      "a": ["GET", "POST"],
+      "o": ["GET", "POST", "FETCH", "OPEN"],
+      "ro": true,
+      "rac": false
     }
   ]
 }

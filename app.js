@@ -345,50 +345,50 @@
 
       const image = card.querySelector(".q-image").value.trim();
       const type = card.querySelector(".q-type").value;
-      const q = { question: text, type, answer: [] };
+      const q = { q: text, t: type, a: [] };
       if (image) {
-        q.image = image;
+        q.i = image;
 
         const imageAttribution = card.querySelector(".q-image-attribution").value.trim();
         if (imageAttribution) {
-          q.image_attribution = imageAttribution;
+          q.ia = imageAttribution;
         }
       }
 
       if (type === "multiple_response" || type === "multiple_choice") {
         const optionRows = card.querySelectorAll(".options-list .option-row");
-        q.options = [];
-        q.answer = [];
-        q.randomize_options = card.querySelector(".q-randomize-options").checked;
+        q.o = [];
+        q.a = [];
+        q.ro = card.querySelector(".q-randomize-options").checked;
 
         if (type === "multiple_response") {
-          q.require_all_correct = card.querySelector(".q-require-all-correct").checked;
+          q.rac = card.querySelector(".q-require-all-correct").checked;
         }
 
         optionRows.forEach((row) => {
           const optionText = row.querySelector(".option-text").value.trim();
           if (!optionText) return;
 
-          q.options.push(optionText);
+          q.o.push(optionText);
           if (row.querySelector(".option-correct").checked) {
-            q.answer.push(optionText);
+            q.a.push(optionText);
           }
         });
       } else {
         const answerInputs = card.querySelectorAll(".answers-list .answer-value");
-        q.answer = Array.from(answerInputs)
+        q.a = Array.from(answerInputs)
           .map((input) => input.value.trim())
           .filter(Boolean);
 
         if (type === "text") {
-          q.case_sensitive = card.querySelector(".q-case-sensitive").checked;
+          q.cs = card.querySelector(".q-case-sensitive").checked;
         }
       }
 
       questions.push(q);
     }
 
-    return { show_answer: showAnswer, show_final_results: showFinalResults, questions };
+    return { sa: showAnswer, sr: showFinalResults, qs: questions };
   }
 
   function showLinkMessage(message, isError) {
@@ -424,21 +424,21 @@
 
   function generateLink() {
     const data = buildQuizData();
-    if (data.questions.length === 0) {
+    if (data.qs.length === 0) {
       showLinkMessage("Add at least one question with text.", true);
       return;
     }
 
-    const invalidText = data.questions.some(
-      (q) => q.type === "text" && q.answer.length === 0
+    const invalidText = data.qs.some(
+      (q) => q.t === "text" && q.a.length === 0
     );
     if (invalidText) {
       showLinkMessage("Each text question needs at least one accepted answer.", true);
       return;
     }
 
-    const invalidMultipleResponse = data.questions.some(
-      (q) => q.type === "multiple_response" && (q.options.length < 2 || q.answer.length === 0)
+    const invalidMultipleResponse = data.qs.some(
+      (q) => q.t === "multiple_response" && (q.o.length < 2 || q.a.length === 0)
     );
     if (invalidMultipleResponse) {
       showLinkMessage(
@@ -448,8 +448,8 @@
       return;
     }
 
-    const invalidMultipleChoice = data.questions.some(
-      (q) => q.type === "multiple_choice" && (q.options.length < 2 || q.answer.length !== 1)
+    const invalidMultipleChoice = data.qs.some(
+      (q) => q.t === "multiple_choice" && (q.o.length < 2 || q.a.length !== 1)
     );
     if (invalidMultipleChoice) {
       showLinkMessage(
@@ -459,10 +459,10 @@
       return;
     }
 
-    const invalidNumerical = data.questions.some(
+    const invalidNumerical = data.qs.some(
       (q) =>
-        q.type === "numerical" &&
-        (q.answer.length === 0 || q.answer.some((value) => !isNumericValue(value)))
+        q.t === "numerical" &&
+        (q.a.length === 0 || q.a.some((value) => !isNumericValue(value)))
     );
     if (invalidNumerical) {
       showLinkMessage(
@@ -487,7 +487,7 @@
   }
 
   function shouldShowFinalResults() {
-    return quizData.show_final_results !== false;
+    return quizData.sr !== false;
   }
 
   // =============================================
@@ -513,7 +513,7 @@
     }
 
     document.getElementById("quiz-info").textContent =
-      quizData.questions.length + " question" + (quizData.questions.length !== 1 ? "s" : "");
+      quizData.qs.length + " question" + (quizData.qs.length !== 1 ? "s" : "");
     document.getElementById("start-quiz-btn").onclick = startQuiz;
     document.getElementById("create-new-link").href = "#create";
   }
@@ -529,20 +529,20 @@
   }
 
   function showQuestion() {
-    const q = quizData.questions[currentQuestion];
+    const q = quizData.qs[currentQuestion];
     document.getElementById("progress-text").textContent =
-      "Question " + (currentQuestion + 1) + " of " + quizData.questions.length;
-    document.getElementById("question-text").textContent = q.question;
+      "Question " + (currentQuestion + 1) + " of " + quizData.qs.length;
+    document.getElementById("question-text").textContent = q.q;
 
     // Image
     const img = document.getElementById("question-image");
     const attribution = document.getElementById("question-image-attribution");
-    if (q.image) {
-      img.src = q.image;
+    if (q.i) {
+      img.src = q.i;
       img.classList.remove("hidden");
 
-      if (q.image_attribution) {
-        attribution.textContent = "Source: " + q.image_attribution;
+      if (q.ia) {
+        attribution.textContent = "Source: " + q.ia;
         attribution.classList.remove("hidden");
       } else {
         attribution.textContent = "";
@@ -559,14 +559,14 @@
     const area = document.getElementById("answer-area");
     area.innerHTML = "";
 
-    if (q.type === "multiple_response" || q.type === "multiple_choice") {
-      const optionsToRender = Array.isArray(q.options) ? q.options.slice() : [];
-      if (q.randomize_options) {
+    if (q.t === "multiple_response" || q.t === "multiple_choice") {
+      const optionsToRender = Array.isArray(q.o) ? q.o.slice() : [];
+      if (q.ro) {
         shuffleArray(optionsToRender);
       }
 
-      if (q.type === "multiple_response") {
-        const requireAllCorrect = q.require_all_correct !== false;
+      if (q.t === "multiple_response") {
+        const requireAllCorrect = q.rac !== false;
         const instruction = document.createElement("p");
         instruction.className = "question-instruction";
         instruction.textContent = requireAllCorrect
@@ -580,7 +580,7 @@
         btn.className = "mc-option";
         btn.textContent = opt;
         btn.onclick = () => {
-          if (q.type === "multiple_choice") {
+          if (q.t === "multiple_choice") {
             area.querySelectorAll(".mc-option").forEach((b) => b.classList.remove("selected"));
             btn.classList.add("selected");
           } else {
@@ -589,7 +589,7 @@
         };
         area.appendChild(btn);
       });
-    } else if (q.type === "numerical") {
+    } else if (q.t === "numerical") {
       const input = document.createElement("input");
       input.type = "number";
       input.step = "any";
@@ -613,23 +613,23 @@
   }
 
   function submitAnswer() {
-    const q = quizData.questions[currentQuestion];
-    const expectedAnswers = Array.isArray(q.answer) ? q.answer : [];
+    const q = quizData.qs[currentQuestion];
+    const expectedAnswers = Array.isArray(q.a) ? q.a : [];
     let userAnswer = "";
     let userAnswers = [];
 
-    if (q.type === "multiple_choice") {
+    if (q.t === "multiple_choice") {
       const selected = document.querySelector("#answer-area .mc-option.selected");
       if (!selected) return;
       userAnswer = selected.textContent;
       userAnswers = [userAnswer];
-    } else if (q.type === "multiple_response") {
+    } else if (q.t === "multiple_response") {
       const selected = Array.from(document.querySelectorAll("#answer-area .mc-option.selected"));
       if (selected.length === 0) return;
 
       userAnswers = selected.map((item) => item.textContent);
       userAnswer = userAnswers.join(", ");
-    } else if (q.type === "numerical") {
+    } else if (q.t === "numerical") {
       const input = document.getElementById("numerical-answer-input");
       const rawAnswer = input.value.trim();
       if (!isNumericValue(rawAnswer)) return;
@@ -644,7 +644,7 @@
     }
 
     let isCorrect = false;
-    if (q.type === "multiple_response") {
+    if (q.t === "multiple_response") {
       const normalizedSelected = Array.from(new Set(userAnswers.map((a) => a.toLowerCase().trim())));
       const normalizedExpected = Array.from(
         new Set(expectedAnswers.map((a) => String(a).toLowerCase().trim()))
@@ -652,7 +652,7 @@
       const expectedSet = new Set(normalizedExpected);
       const hasOnlyCorrectSelections = normalizedSelected.every((a) => expectedSet.has(a));
       const hasAtLeastOneCorrectSelection = normalizedSelected.some((a) => expectedSet.has(a));
-      const requireAllCorrect = q.require_all_correct !== false;
+      const requireAllCorrect = q.rac !== false;
 
       if (requireAllCorrect) {
         isCorrect =
@@ -660,7 +660,7 @@
       } else {
         isCorrect = hasOnlyCorrectSelections && hasAtLeastOneCorrectSelection;
       }
-    } else if (q.type === "numerical") {
+    } else if (q.t === "numerical") {
       const userNumber = Number(userAnswer);
       const expectedNumbers = expectedAnswers
         .map((value) => Number(value))
@@ -668,8 +668,8 @@
       const tolerance = 1e-9;
 
       isCorrect = expectedNumbers.some((value) => Math.abs(value - userNumber) <= tolerance);
-    } else if (q.type === "text") {
-      if (q.case_sensitive) {
+    } else if (q.t === "text") {
+      if (q.cs) {
         isCorrect = expectedAnswers.some((a) => String(a).trim() === userAnswer);
       } else {
         const normalizedUser = userAnswer.toLowerCase();
@@ -686,11 +686,11 @@
     const expectedDisplay = expectedAnswers.map((value) => String(value));
 
     if (isCorrect) score++;
-    answers.push({ question: q.question, userAnswer, correct: isCorrect, expected: expectedDisplay });
+  answers.push({ question: q.q, userAnswer, correct: isCorrect, expected: expectedDisplay });
 
     document.getElementById("submit-answer-btn").classList.add("hidden");
 
-    if (quizData.show_answer) {
+    if (quizData.sa) {
       const fb = document.getElementById("feedback");
       fb.classList.remove("hidden", "correct", "incorrect");
       if (isCorrect) {
@@ -702,7 +702,7 @@
       }
     }
 
-    if (currentQuestion < quizData.questions.length - 1) {
+    if (currentQuestion < quizData.qs.length - 1) {
       const nextBtn = document.getElementById("next-question-btn");
       nextBtn.classList.remove("hidden");
       nextBtn.onclick = () => {
@@ -710,12 +710,12 @@
         showQuestion();
       };
       // If not showing answers, auto-advance
-      if (!quizData.show_answer) {
+      if (!quizData.sa) {
         currentQuestion++;
         showQuestion();
       }
     } else {
-      if (quizData.show_answer) {
+      if (quizData.sa) {
         const nextBtn = document.getElementById("next-question-btn");
         nextBtn.classList.remove("hidden");
         nextBtn.textContent = shouldShowFinalResults() ? "See Results" : "Finish";
@@ -739,7 +739,7 @@
       createNewLink.classList.remove("hidden");
 
       scoreText.textContent =
-        "You scored " + score + " out of " + quizData.questions.length;
+        "You scored " + score + " out of " + quizData.qs.length;
 
       breakdown.innerHTML = "";
       answers.forEach((a, i) => {
