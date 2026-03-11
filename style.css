@@ -595,7 +595,7 @@ select:hover {
 }
 
 #question-note::before {
-  content: "Additional info";
+  content: "Notes";
   display: block;
   margin-bottom: 0.22rem;
   font-size: 0.8rem;

@@ -1,63 +1,31 @@
 (function () {
   "use strict";
 
-  // --- Compression / Decompression helpers ---
-  const textEncoder = new TextEncoder();
-  const textDecoder = new TextDecoder();
-
-  function bytesToBase64Url(bytes) {
-    let binary = "";
-    const chunkSize = 0x8000;
-
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      const chunk = bytes.subarray(i, i + chunkSize);
-      binary += String.fromCharCode(...chunk);
-    }
-
-    return btoa(binary)
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "");
-  }
-
-  function base64UrlToBytes(encoded) {
-    const base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
-    const paddedBase64 = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
-    const binary = atob(paddedBase64);
-    const bytes = new Uint8Array(binary.length);
-
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-
-    return bytes;
-  }
-
   async function compressQuiz(data) {
     if (typeof CompressionStream !== "function") {
       throw new Error("CompressionStream is not available in this browser");
     }
-
     const json = JSON.stringify(data);
-    const inputBytes = textEncoder.encode(json);
-    const compressedStream = new Blob([inputBytes])
-      .stream()
-      .pipeThrough(new CompressionStream("deflate"));
-    const compressedBuffer = await new Response(compressedStream).arrayBuffer();
-    return bytesToBase64Url(new Uint8Array(compressedBuffer));
+    const inputBytes = new TextEncoder().encode(json);
+    const compressedStream = new CompressionStream("deflate");
+    const writer = compressedStream.writable.getWriter();
+    writer.write(inputBytes);
+    writer.close();
+    const compressedBuffer = await new Response(compressedStream.readable).arrayBuffer();
+    return new Uint8Array(compressedBuffer).toBase64({alphabet: 'base64url'});
   }
 
   async function decompressQuiz(encoded) {
     if (typeof DecompressionStream !== "function") {
       throw new Error("DecompressionStream is not available in this browser");
     }
-
-    const compressedBytes = base64UrlToBytes(encoded);
-    const decompressedStream = new Blob([compressedBytes])
-      .stream()
-      .pipeThrough(new DecompressionStream("deflate"));
-    const decompressedBuffer = await new Response(decompressedStream).arrayBuffer();
-    return JSON.parse(textDecoder.decode(new Uint8Array(decompressedBuffer)));
+    const compressedBytes = Uint8Array.fromBase64(encoded, {alphabet: 'base64url'});
+    const decompressedStream = new DecompressionStream("deflate");
+    const writer = decompressedStream.writable.getWriter();
+    writer.write(compressedBytes);
+    writer.close();
+    const decompressedBuffer = await new Response(decompressedStream.readable).arrayBuffer();
+    return JSON.parse(new TextDecoder().decode(decompressedBuffer));
   }
 
   function shuffleArray(items) {
@@ -142,7 +110,7 @@
         <textarea class="q-text" placeholder="Enter your question"></textarea>
       </div>
       <div class="form-group">
-        <label>Additional Info (optional)</label>
+        <label>Notes (optional)</label>
         <textarea class="q-note" placeholder="Shown after the question is answered"></textarea>
       </div>
       <div class="form-group">
