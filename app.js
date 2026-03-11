@@ -1,6 +1,8 @@
 (function () {
   "use strict";
 
+  const SCHEMA_VERSION = "1.0.0";
+
   async function compressQuiz(data) {
     if (typeof CompressionStream !== "function") {
       throw new Error("CompressionStream is not available in this browser");
@@ -408,7 +410,7 @@
       questions.push(q);
     }
 
-    const data = { sa: showAnswer, sr: showFinalResults, qs: questions };
+    const data = { sv: SCHEMA_VERSION, sa: showAnswer, sr: showFinalResults, qs: questions };
     if (quizName) {
       data.n = quizName;
     }

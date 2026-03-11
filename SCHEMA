@@ -1,4 +1,7 @@
 schema = {
+  // sv: schema version for payload compatibility
+  "sv": 1,
+
   // sa: show correct answer after each question
   "sa": true,
 
