@@ -2,6 +2,12 @@
   "use strict";
 
   const SCHEMA_VERSION = "1.0.0";
+  const QUESTION_TYPES = new Set([
+    "text",
+    "numerical",
+    "multiple_choice",
+    "multiple_response"
+  ]);
 
   async function compressQuiz(data) {
     if (typeof CompressionStream !== "function") {
@@ -52,6 +58,170 @@
     }
 
     return Number.isFinite(Number(trimmed));
+  }
+
+  function isPlainObject(value) {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+  }
+
+  function normalizeStringArray(value, fieldName) {
+    if (!Array.isArray(value)) {
+      throw new Error(fieldName + " must be an array");
+    }
+
+    return value
+      .map((item) => {
+        if (typeof item === "string" || typeof item === "number") {
+          return String(item).trim();
+        }
+        throw new Error(fieldName + " contains an invalid value");
+      })
+      .filter(Boolean);
+  }
+
+  function validateAndNormalizeQuizData(rawQuizData) {
+    if (!isPlainObject(rawQuizData)) {
+      throw new Error("Quiz payload must be an object");
+    }
+
+    if ("sa" in rawQuizData && typeof rawQuizData.sa !== "boolean") {
+      throw new Error("Invalid show-answer flag");
+    }
+
+    if ("sr" in rawQuizData && typeof rawQuizData.sr !== "boolean") {
+      throw new Error("Invalid show-results flag");
+    }
+
+    if ("n" in rawQuizData && typeof rawQuizData.n !== "string") {
+      throw new Error("Invalid quiz name");
+    }
+
+    if (!Array.isArray(rawQuizData.qs) || rawQuizData.qs.length === 0) {
+      throw new Error("Quiz must include at least one question");
+    }
+
+    const normalizedQuiz = {
+      sv:
+        typeof rawQuizData.sv === "string" || typeof rawQuizData.sv === "number"
+          ? String(rawQuizData.sv)
+          : SCHEMA_VERSION,
+      sa: rawQuizData.sa !== false,
+      sr: rawQuizData.sr !== false,
+      qs: []
+    };
+
+    const quizName = typeof rawQuizData.n === "string" ? rawQuizData.n.trim() : "";
+    if (quizName) {
+      normalizedQuiz.n = quizName;
+    }
+
+    rawQuizData.qs.forEach((rawQuestion, index) => {
+      const questionLabel = "Question " + (index + 1);
+
+      if (!isPlainObject(rawQuestion)) {
+        throw new Error(questionLabel + " must be an object");
+      }
+
+      const questionText = typeof rawQuestion.q === "string" ? rawQuestion.q.trim() : "";
+      if (!questionText) {
+        throw new Error(questionLabel + " is missing question text");
+      }
+
+      if (!QUESTION_TYPES.has(rawQuestion.t)) {
+        throw new Error(questionLabel + " has an invalid type");
+      }
+
+      if ("nt" in rawQuestion && typeof rawQuestion.nt !== "string") {
+        throw new Error(questionLabel + " has an invalid note");
+      }
+
+      if ("i" in rawQuestion && typeof rawQuestion.i !== "string") {
+        throw new Error(questionLabel + " has an invalid image URL");
+      }
+
+      if ("ia" in rawQuestion && typeof rawQuestion.ia !== "string") {
+        throw new Error(questionLabel + " has an invalid image attribution");
+      }
+
+      if ("cs" in rawQuestion && typeof rawQuestion.cs !== "boolean") {
+        throw new Error(questionLabel + " has an invalid case-sensitivity flag");
+      }
+
+      if ("ro" in rawQuestion && typeof rawQuestion.ro !== "boolean") {
+        throw new Error(questionLabel + " has an invalid randomize-options flag");
+      }
+
+      if ("rac" in rawQuestion && typeof rawQuestion.rac !== "boolean") {
+        throw new Error(questionLabel + " has an invalid require-all-correct flag");
+      }
+
+      const normalizedQuestion = { q: questionText, t: rawQuestion.t, a: [] };
+
+      const note = typeof rawQuestion.nt === "string" ? rawQuestion.nt.trim() : "";
+      if (note) {
+        normalizedQuestion.nt = note;
+      }
+
+      const image = typeof rawQuestion.i === "string" ? rawQuestion.i.trim() : "";
+      if (image) {
+        normalizedQuestion.i = image;
+      }
+
+      const imageAttribution =
+        typeof rawQuestion.ia === "string" ? rawQuestion.ia.trim() : "";
+      if (imageAttribution) {
+        normalizedQuestion.ia = imageAttribution;
+      }
+
+      if (rawQuestion.t === "text") {
+        const answers = normalizeStringArray(rawQuestion.a, questionLabel + " answers");
+        if (answers.length === 0) {
+          throw new Error(questionLabel + " must include at least one accepted answer");
+        }
+
+        normalizedQuestion.a = answers;
+        normalizedQuestion.cs = rawQuestion.cs === true;
+      } else if (rawQuestion.t === "numerical") {
+        const answers = normalizeStringArray(rawQuestion.a, questionLabel + " answers");
+        if (answers.length === 0 || answers.some((value) => !isNumericValue(value))) {
+          throw new Error(questionLabel + " must include valid numerical answers");
+        }
+
+        normalizedQuestion.a = answers;
+      } else {
+        const options = normalizeStringArray(rawQuestion.o, questionLabel + " options");
+        const answers = normalizeStringArray(rawQuestion.a, questionLabel + " answers");
+
+        if (options.length < 2) {
+          throw new Error(questionLabel + " must include at least two options");
+        }
+
+        if (answers.length === 0) {
+          throw new Error(questionLabel + " must include at least one correct answer");
+        }
+
+        const optionSet = new Set(options.map((option) => option.toLowerCase()));
+        if (answers.some((answer) => !optionSet.has(answer.toLowerCase()))) {
+          throw new Error(questionLabel + " has answers that are not part of its options");
+        }
+
+        if (rawQuestion.t === "multiple_choice" && answers.length !== 1) {
+          throw new Error(questionLabel + " must include exactly one correct answer");
+        }
+
+        normalizedQuestion.o = options;
+        normalizedQuestion.a = answers;
+        normalizedQuestion.ro = rawQuestion.ro === true;
+
+        if (rawQuestion.t === "multiple_response") {
+          normalizedQuestion.rac = rawQuestion.rac !== false;
+        }
+      }
+
+      normalizedQuiz.qs.push(normalizedQuestion);
+    });
+
+    return normalizedQuiz;
   }
 
   // --- Routing ---
@@ -538,7 +708,8 @@
     document.getElementById("quiz-view").classList.remove("hidden");
 
     try {
-      quizData = await decompressQuiz(hash);
+      const decompressedQuiz = await decompressQuiz(hash);
+      quizData = validateAndNormalizeQuizData(decompressedQuiz);
     } catch {
       document.getElementById("quiz-start").innerHTML =
         "<h1>Invalid Quiz</h1><p>The quiz link appears to be broken or corrupted.</p>" +
