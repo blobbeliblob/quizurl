@@ -60,6 +60,38 @@
     return Number.isFinite(Number(trimmed));
   }
 
+  function normalizeHttpsImageUrl(value) {
+    if (typeof value !== "string") {
+      throw new Error("Image URL must be a string");
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return "";
+    }
+
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(trimmed);
+    } catch {
+      throw new Error("Image URL must be a valid absolute URL");
+    }
+
+    if (parsedUrl.protocol !== "https:") {
+      throw new Error("Image URL must use https");
+    }
+
+    if (!parsedUrl.hostname) {
+      throw new Error("Image URL must include a hostname");
+    }
+
+    if (parsedUrl.username || parsedUrl.password) {
+      throw new Error("Image URL cannot include credentials");
+    }
+
+    return parsedUrl.href;
+  }
+
   function isPlainObject(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
   }
@@ -164,7 +196,11 @@
 
       const image = typeof rawQuestion.i === "string" ? rawQuestion.i.trim() : "";
       if (image) {
-        normalizedQuestion.i = image;
+        try {
+          normalizedQuestion.i = normalizeHttpsImageUrl(image);
+        } catch {
+          throw new Error(questionLabel + " image URL must be a valid https URL");
+        }
       }
 
       const imageAttribution =
@@ -525,7 +561,9 @@
     const cards = document.querySelectorAll(".question-card");
     const questions = [];
 
+    let cardNumber = 0;
     for (const card of cards) {
+      cardNumber++;
       const text = card.querySelector(".q-text").value.trim();
       if (!text) continue;
 
@@ -539,7 +577,11 @@
       }
 
       if (image) {
-        q.i = image;
+        try {
+          q.i = normalizeHttpsImageUrl(image);
+        } catch {
+          throw new Error("Question " + cardNumber + " image URL must be a valid https URL.");
+        }
 
         const imageAttribution = card.querySelector(".q-image-attribution").value.trim();
         if (imageAttribution) {
@@ -620,7 +662,14 @@
   }
 
   async function generateLink() {
-    const data = buildQuizData();
+    let data;
+    try {
+      data = buildQuizData();
+    } catch (error) {
+      showLinkMessage(error.message || "One or more image URLs are invalid.", true);
+      return;
+    }
+
     if (data.qs.length === 0) {
       showLinkMessage("Add at least one question with text.", true);
       return;
