@@ -751,10 +751,24 @@
   let score = 0;
   let answers = [];
 
+  function resetQuizProgress() {
+    currentQuestion = 0;
+    score = 0;
+    answers = [];
+  }
+
+  function resetQuizHostView() {
+    resetQuizProgress();
+    document.getElementById("quiz-start").classList.remove("hidden");
+    document.getElementById("quiz-question").classList.add("hidden");
+    document.getElementById("quiz-results").classList.add("hidden");
+  }
+
   async function showQuizView(hash) {
     document.getElementById("main-view").classList.add("hidden");
     document.getElementById("creator-view").classList.add("hidden");
     document.getElementById("quiz-view").classList.remove("hidden");
+    resetQuizHostView();
 
     try {
       const decompressedQuiz = await decompressQuiz(hash);
@@ -776,9 +790,7 @@
   }
 
   function startQuiz() {
-    currentQuestion = 0;
-    score = 0;
-    answers = [];
+    resetQuizProgress();
     document.getElementById("quiz-start").classList.add("hidden");
     document.getElementById("quiz-results").classList.add("hidden");
     document.getElementById("quiz-question").classList.remove("hidden");
